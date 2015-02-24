@@ -1,0 +1,10 @@
+body {
+    margin: 0px;
+    background-color: #fff;
+    overflow: hidden;
+}
+
+.emboss {
+    visibility: hidden;
+    display:    none;
+}

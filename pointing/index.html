@@ -1,0 +1,105 @@
+<html>
+    <head>
+        <title>THREE.JS Pointing Example</title>
+        <style>
+            body { margin: 0; }
+            canvas { width: 100%; height: 100% }
+        </style>
+    </head>
+    <body>
+        <script src="https://ajax.googleapis.com/ajax/libs/threejs/r69/three.min.js"></script>
+        <script>
+        (function() {
+            var raycaster = new THREE.Raycaster();
+            var mouse     = new THREE.Vector3();
+            var diff      = new THREE.Vector3();
+            var boxStart  = new THREE.Vector3();
+            var white = new THREE.Color(0xffffff);
+            var green = new THREE.Color(0x00ff00);
+            var dragging = false;
+            var scene = new THREE.Scene();
+            var camera = new THREE.PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1000 );
+
+            var renderer = new THREE.WebGLRenderer();
+            renderer.setSize( window.innerWidth, window.innerHeight );
+            document.body.appendChild( renderer.domElement );
+
+            var geometry = new THREE.BoxGeometry( 1, 1, 1 );
+            var material = new THREE.MeshBasicMaterial( { color: green } );
+            var cube = new THREE.Mesh( geometry, material );
+            scene.add(cube);
+
+            var pGeom = new THREE.PlaneGeometry(window.innerWidth, window.innerHeight);
+            var pMatr = new THREE.MeshBasicMaterial({
+                color: 0xffff00,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0
+            });
+            var plane = new THREE.Mesh(pGeom, pMatr);
+            scene.add(plane);
+
+            camera.position.z = 5;
+            count = 0;
+
+            function getWorldCoords(event) {
+                if (!dragging) {
+                    return;
+                }
+                // calculate mouse position in normalized device coordinates
+                // (-1 to +1) for both components
+                mouse.x =   ( event.clientX / window.innerWidth  ) * 2 - 1;
+                mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+                // update the picking ray with the camera and mouse position
+                raycaster.set( mouse, camera );
+
+                // calculate objects intersecting the picking ray
+                raycaster.set(camera.position, mouse);
+                raycaster.ray.direction.unproject(camera).sub( camera.position ).normalize();
+
+                var intersects = raycaster.intersectObjects( scene.children );
+
+                for (i in intersects) {
+                    if (intersects[i].object.geometry.type == 'PlaneGeometry') {
+                        return {
+                            x: intersects[i].point.x,
+                            y: intersects[i].point.y
+                        };
+                    }
+                }
+            }
+
+            window.addEventListener('mousemove', function(event) {
+                var coords = getWorldCoords(event);
+                if (coords) {
+                    cube.position.x = boxStart.x + coords.x - diff.x;
+                    cube.position.y = boxStart.y + coords.y - diff.y;
+                }
+            }, false);
+            window.addEventListener('mousedown', function() {
+                dragging = true;
+                var coords = getWorldCoords(event);
+                if (coords) {
+                    diff.x = coords.x;
+                    diff.y = coords.y;
+                    boxStart.x = box.position.x;
+                    boxStart.y = box.position.y;
+                }
+            });
+            window.addEventListener('mouseup',   function() { dragging = false });
+
+
+            function render() {
+                window.requestAnimationFrame(render);
+
+                count += 0.01;
+                cube.rotation.x = Math.sin(count);
+                cube.rotation.y = count;
+
+                renderer.render( scene, camera );
+            }
+            render();
+        })();
+        </script>
+    </body>
+</html>
