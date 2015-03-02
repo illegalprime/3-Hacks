@@ -3,12 +3,13 @@ var scene;
 var renderer;
 var mesh;
 var textures = {};
+var line;
 
 window.onload = function() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000);
 
-    createTextures();
+    createTextures(0.1);
     init();
     animate();
 }
@@ -19,12 +20,23 @@ function init() {
     // light.position.set(0, 1, 1).normalize();
     // scene.add(light);
 
-    var geometry = new THREE.CubeGeometry( 10, 10, 10);
+    var geometry = new THREE.BoxGeometry( 10, 10, 10);
     var material = new THREE.MeshPhongMaterial({
         map: THREE.ImageUtils.loadTexture('assets/crate.jpg')
     });
 
-    // mesh = new THREE.Mesh(geometry, material );
+    mesh = new THREE.Mesh(geometry, material );
+    scene.add( mesh );
+
+    mesh = textures.line;
+    mesh.position.z = -500;
+    mesh.position.x = -300;
+    mesh.position.y = -300;
+    mesh.rotation.x += .01;
+    mesh.rotation.y += .005;
+
+    scene.add( mesh );
+
     mesh = textures['crate'];
     mesh.position.z = -500;
     mesh.position.x = -300;
@@ -92,6 +104,18 @@ function createTextures(scale) {
                 ( points[j][1] - magic ) * scale
                 ));
         }
+        var line_material = new THREE.LineBasicMaterial({
+            color: 0xffffff,
+            linewidth: 100
+        });
+
+        var line_geometry = new THREE.Geometry();
+        line_geometry.vertices = vectors;
+        line_geometry.verticesNeedUpdate = true;
+
+        textures.line = new THREE.Line( line_geometry, line_material );
+
+
         var shape = new THREE.Shape(vectors);
         var textr = new THREE.Texture(canvas);
         textr.needsUpdate = true;
@@ -103,22 +127,17 @@ function createTextures(scale) {
             extrudeMaterial: 1
         });
         var material = new THREE.MeshBasicMaterial({
-            map: textr
+            color: 0xffffff
         });
 
-        var uvs = [];
-        uvs.push( new THREE.Vector2( 0.0, 0.0 ) );
-        uvs.push( new THREE.Vector2( 1.0, 0.0 ) );
-        uvs.push( new THREE.Vector2( 1.0, 1.0 ) );
-        // generate faces
-        geometry.faces.push( new THREE.Face3( 0, 1, 2 ) );
-        geometry.faceVertexUvs[ 0 ].push( [ uvs[0], uvs[1], uvs[2] ] );
+        // geometry.faceVertexUvs[ 0 ].push( vectors );
 
-        textures[imgs[i].id] = new THREE.SceneUtils.createMultiMaterialObject(
-            geometry, [material, new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    wireframe: true,
-                    transparent: true
-                })]);
+        // textures[imgs[i].id] = new THREE.SceneUtils.createMultiMaterialObject(
+        //     geometry, [material, new THREE.MeshBasicMaterial({
+        //             color: 0x000000,
+        //             wireframe: true,
+        //             transparent: true
+        //         })]);
+        textures[imgs[i].id] = new THREE.Mesh(geometry, material);
     }
 }
