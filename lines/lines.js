@@ -29,7 +29,7 @@ function init() {
         color: 0xffff00
     });
     var sphere = new THREE.Mesh(geometry, material);
-    scene.add(sphere);
+    // scene.add(sphere);
 
     var material = new THREE.LineBasicMaterial({
         color: 0x0000ff,
@@ -41,7 +41,14 @@ function init() {
     var gunterBB = points.gunter.boundingBox;
     var width    = gunterBB.max.x - gunterBB.min.x;
     var height   = gunterBB.max.y - gunterBB.min.y;
-    line = new THREE.Line(points.gunter, material);
+
+    var geometry = new THREE.Geometry();
+    var gunterVs = points.gunter.vertices;
+    for (var i = 0; i < gunterVs.length; ++i) {
+        geometry.vertices.push(points.gunter.vertices[0]);
+    }
+
+    line = new THREE.Line(geometry, material);
     line.position.x = - width  / 2;
     line.position.y =   height / 2;
     scene.add( line );
@@ -61,6 +68,17 @@ function init() {
         if (coords) line.material.color = new THREE.Color(0, 1, 0);
         else        line.material.color = new THREE.Color(0, 0, 1);
     }, false);
+
+    var i = 0;
+    var speed = 2;
+    setTimeout(function drawMore() {
+        if (i < gunterVs.length) {
+            line.geometry.vertices[i] = gunterVs[i];
+            line.geometry.verticesNeedUpdate = true;
+            ++i;
+            setTimeout(drawMore, speed);
+        }
+    }, speed);
 }
 
 function animate() {
