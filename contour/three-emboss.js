@@ -9,7 +9,7 @@ window.onload = function() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 1000);
 
-    createTextures(0.1);
+    createTextures();
     init();
     animate();
 }
@@ -20,31 +20,38 @@ function init() {
     // light.position.set(0, 1, 1).normalize();
     // scene.add(light);
 
-    var geometry = new THREE.BoxGeometry( 10, 10, 10);
-    var material = new THREE.MeshPhongMaterial({
-        map: THREE.ImageUtils.loadTexture('assets/crate.jpg')
-    });
+    // var geometry = new THREE.BoxGeometry( 10, 10, 10);
+    // var material = new THREE.MeshPhongMaterial({
+    //     map: THREE.ImageUtils.loadTexture('assets/crate.jpg')
+    // });
 
-    mesh = new THREE.Mesh(geometry, material );
-    scene.add( mesh );
+    // mesh = new THREE.Mesh(geometry, material );
+    // scene.add( mesh );
+    //
+    // mesh = textures.line;
+    // mesh.position.z = -500;
+    // mesh.position.x = -300;
+    // mesh.position.y = -300;
+    // mesh.rotation.x += .01;
+    // mesh.rotation.y += .005;
+    //
+    // scene.add( mesh );
+    //
+    // mesh = textures['crate'];
+    // mesh.position.z = -500;
+    // mesh.position.x = -300;
+    // mesh.position.y = -300;
+    // mesh.rotation.x += .01;
+    // mesh.rotation.y += .005;
+    //
+    // scene.add( mesh );
 
-    mesh = textures.line;
-    mesh.position.z = -500;
-    mesh.position.x = -300;
-    mesh.position.y = -300;
-    mesh.rotation.x += .01;
-    mesh.rotation.y += .005;
-
-    scene.add( mesh );
-
-    mesh = textures['crate'];
-    mesh.position.z = -500;
-    mesh.position.x = -300;
-    mesh.position.y = -300;
-    mesh.rotation.x += .01;
-    mesh.rotation.y += .005;
-
-    scene.add( mesh );
+    geometry = new THREE.Geometry();
+    geometry.vertices.push(new THREE.Vector2(0, 0));
+    geometry.vertices.push(new THREE.Vector2(1, 1));
+    material = new THREE.LineBasicMaterial( { color: 0xffffff, linewidth: 20 } );
+    line = new THREE.Line(geometry, material);
+    scene.add(line);
 
     renderer = new THREE.WebGLRenderer();
     renderer.setSize( window.innerWidth, window.innerHeight );
@@ -57,8 +64,8 @@ function init() {
 
 function animate() {
 
-    mesh.rotation.x += .01;
-    mesh.rotation.y += .005;
+    // mesh.rotation.x += .01;
+    // mesh.rotation.y += .005;
     render();
     requestAnimationFrame( animate );
 }
@@ -104,40 +111,40 @@ function createTextures(scale) {
                 ( points[j][1] - magic ) * scale
                 ));
         }
-        var line_material = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            linewidth: 100
-        });
-
-        var line_geometry = new THREE.Geometry();
-        line_geometry.vertices = vectors;
-        line_geometry.verticesNeedUpdate = true;
-
-        textures.line = new THREE.Line( line_geometry, line_material );
-
-
-        var shape = new THREE.Shape(vectors);
-        var textr = new THREE.Texture(canvas);
-        textr.needsUpdate = true;
-
-        var geometry = new THREE.ExtrudeGeometry(shape, {
-            amount: 20,
-            bevelEnabled: false,
-            material: 0,
-            extrudeMaterial: 1
-        });
-        var material = new THREE.MeshBasicMaterial({
-            color: 0xffffff
-        });
-
-        // geometry.faceVertexUvs[ 0 ].push( vectors );
-
-        // textures[imgs[i].id] = new THREE.SceneUtils.createMultiMaterialObject(
-        //     geometry, [material, new THREE.MeshBasicMaterial({
-        //             color: 0x000000,
-        //             wireframe: true,
-        //             transparent: true
-        //         })]);
-        textures[imgs[i].id] = new THREE.Mesh(geometry, material);
+        // var line_material = new THREE.LineBasicMaterial({
+        //     color: 0xffffff,
+        //     linewidth: 100
+        // });
+        //
+        // var line_geometry = new THREE.Geometry();
+        // line_geometry.vertices = vectors;
+        // line_geometry.verticesNeedUpdate = true;
+        //
+        // textures.line = new THREE.Line( line_geometry, line_material );
+        //
+        //
+        // var shape = new THREE.Shape(vectors);
+        // var textr = new THREE.Texture(canvas);
+        // textr.needsUpdate = true;
+        //
+        // var geometry = new THREE.ExtrudeGeometry(shape, {
+        //     amount: 20,
+        //     bevelEnabled: false,
+        //     material: 0,
+        //     extrudeMaterial: 1
+        // });
+        // var material = new THREE.MeshBasicMaterial({
+        //     color: 0xffffff
+        // });
+        //
+        // // geometry.faceVertexUvs[ 0 ].push( vectors );
+        //
+        // // textures[imgs[i].id] = new THREE.SceneUtils.createMultiMaterialObject(
+        // //     geometry, [material, new THREE.MeshBasicMaterial({
+        // //             color: 0x000000,
+        // //             wireframe: true,
+        // //             transparent: true
+        // //         })]);
+        // textures[imgs[i].id] = new THREE.Mesh(geometry, material);
     }
 }
