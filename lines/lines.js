@@ -1,6 +1,6 @@
 var camera, scene, renderer, meta;
-var line;
-var points;
+var line, points;
+var mouse, raycaster;
 
 init();
 animate();
@@ -12,8 +12,10 @@ function init() {
                                          0.1,
                                          4000);
     camera.position.z = 500;
-    scene  = new THREE.Scene();
-    renderer = new THREE.WebGLRenderer();
+    scene     = new THREE.Scene();
+    renderer  = new THREE.WebGLRenderer();
+    raycaster = new THREE.Raycaster();
+    mouse     = new THREE.Vector3();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     meta = {};
@@ -35,10 +37,30 @@ function init() {
         linejoin: 'bevel'
     });
 
+    points.gunter.computeBoundingBox();
+    var gunterBB = points.gunter.boundingBox;
+    var width    = gunterBB.max.x - gunterBB.min.x;
+    var height   = gunterBB.max.y - gunterBB.min.y;
     line = new THREE.Line(points.gunter, material);
-    line.position.x = -250;
-    line.position.y = 375;
+    line.position.x = - width  / 2;
+    line.position.y =   height / 2;
     scene.add( line );
+
+    var pGeom = new THREE.PlaneGeometry(width, height);
+    var pMatr = new THREE.MeshBasicMaterial({
+        color: 0xffff00,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0
+    });
+    var plane = new THREE.Mesh(pGeom, pMatr);
+    scene.add(plane);
+
+    window.addEventListener('mousemove', function(event) {
+        var coords = getWorldCoords(event);
+        if (coords) line.material.color = new THREE.Color(0, 1, 0);
+        else        line.material.color = new THREE.Color(0, 0, 1);
+    }, false);
 }
 
 function animate() {
@@ -86,4 +108,28 @@ function createOutlines(scale) {
         vertices[imgs[i].id] = geometry;
     }
     return vertices;
+}
+
+function getWorldCoords(event) {
+    // calculate mouse position in normalized device coordinates
+    // (-1 to +1) for both components
+    mouse.x =   ( event.clientX / window.innerWidth  ) * 2 - 1;
+    mouse.y = - ( event.clientY / window.innerHeight ) * 2 + 1;
+    // update the picking ray with the camera and mouse position
+    raycaster.set( mouse, camera );
+
+    // calculate objects intersecting the picking ray
+    raycaster.set(camera.position, mouse);
+    raycaster.ray.direction.unproject(camera).sub( camera.position ).normalize();
+
+    var intersects = raycaster.intersectObjects(scene.children);
+
+    for (i in intersects) {
+        if (intersects[i].object.geometry.type == 'PlaneGeometry') {
+            return {
+                x: intersects[i].point.x,
+                y: intersects[i].point.y
+            };
+        }
+    }
 }
