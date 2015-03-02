@@ -1,4 +1,6 @@
-var camera, scene, renderer;
+var camera, scene, renderer, meta;
+var line;
+var points;
 
 init();
 animate();
@@ -9,11 +11,15 @@ function init() {
                                          window.innerWidth / window.innerHeight,
                                          0.1,
                                          4000);
-    camera.position.z = 300;
+    camera.position.z = 500;
     scene  = new THREE.Scene();
     renderer = new THREE.WebGLRenderer();
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
+    meta = {};
+
+    // Get vertext data.
+    points = createOutlines();
 
     // Adding Meshes
     var geometry = new THREE.SphereGeometry(50, 16, 16);
@@ -25,17 +31,13 @@ function init() {
 
     var material = new THREE.LineBasicMaterial({
         color: 0x0000ff,
-        linewidth: 20
+        linewidth: 200,
+        linejoin: 'bevel'
     });
 
-    var geometry = new THREE.Geometry();
-    geometry.vertices.push(
-        new THREE.Vector3( -100, 0, 0 ),
-        new THREE.Vector3( 0, 100, 0 ),
-        new THREE.Vector3( 100, 0, 0 )
-    );
-
-    var line = new THREE.Line( geometry, material );
+    line = new THREE.Line(points.gunter, material);
+    line.position.x = -250;
+    line.position.y = 375;
     scene.add( line );
 }
 
@@ -49,4 +51,39 @@ function render() {
 
     // Render
     renderer.render(scene, camera);
+}
+
+function createOutlines(scale) {
+    scale = scale || 1;
+    var imgs  = document.querySelectorAll('img.outline');
+    var magic = 5;
+    var vertices = {};
+
+    for (var i = 0; i < imgs.length; ++i) {
+        var canvas  = document.createElement('canvas');
+        canvas.width  = imgs[i].width  + magic;
+        canvas.height = imgs[i].height + magic;
+        canvas.visibility = 'hidden';
+        var context = canvas.getContext('2d');
+        context.drawImage(imgs[i], magic, magic);
+
+        imgData = context.getImageData(0, 0, canvas.width, canvas.height);
+        pixels  = imgData.data;
+
+        var imageDefinition = function(x, y) {
+            var alpha = pixels[(y * canvas.width + x) * 4 + 3];
+            return alpha > 0;
+        }
+        var points = contour(imageDefinition);
+        var geometry = new THREE.Geometry();
+
+        for (var j = 0; j < points.length; ++j) {
+            geometry.vertices.push(new THREE.Vector3(
+                ( points[j][0] - magic ) *  scale,
+                ( points[j][1] - magic ) * -scale, 0
+            ));
+        }
+        vertices[imgs[i].id] = geometry;
+    }
+    return vertices;
 }
