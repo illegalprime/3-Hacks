@@ -1,6 +1,7 @@
 var camera, scene, renderer, meta;
 var line, points;
 var mouse, raycaster;
+var hover, tag;
 
 init();
 animate();
@@ -24,16 +25,9 @@ function init() {
     points = createOutlines();
 
     // Adding Meshes
-    var geometry = new THREE.SphereGeometry(50, 16, 16);
-    var material = new THREE.MeshBasicMaterial({
-        color: 0xffff00
-    });
-    var sphere = new THREE.Mesh(geometry, material);
-    // scene.add(sphere);
-
     var material = new THREE.LineBasicMaterial({
-        color: 0x0000ff,
-        linewidth: 200,
+        color: 0xe8bd07,
+        linewidth: 500,
         linejoin: 'bevel'
     });
 
@@ -53,6 +47,20 @@ function init() {
     line.position.y =   height / 2;
     scene.add( line );
 
+    var geometry = new THREE.PlaneGeometry(100, 100);
+    var material = new THREE.MeshBasicMaterial({
+        map:  THREE.ImageUtils.loadTexture('assets/argonisotope-flat.png'),
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0
+    });
+    tag = new THREE.Mesh(geometry, material);
+    tag.position.z = 1;
+    tag.position.x = 300;
+    tag.position.y = -10;
+    tag.rotation.z = Math.PI / 2;
+    scene.add(tag);
+
     var pGeom = new THREE.PlaneGeometry(width, height);
     var pMatr = new THREE.MeshBasicMaterial({
         color: 0xffff00,
@@ -65,8 +73,8 @@ function init() {
 
     window.addEventListener('mousemove', function(event) {
         var coords = getWorldCoords(event);
-        if (coords) line.material.color = new THREE.Color(0, 1, 0);
-        else        line.material.color = new THREE.Color(0, 0, 1);
+        if (coords) hover = true;
+        else        hover = false;
     }, false);
 
     var i = 0;
@@ -88,7 +96,14 @@ function animate() {
 
 function render() {
     // Setup rendering
-
+    if (hover) {
+        if (tag.material.opacity < 1) {
+            tag.material.opacity += 0.1;
+        }
+    }
+    else if (tag.material.opacity > 0) {
+        tag.material.opacity -= 0.1;
+    }
     // Render
     renderer.render(scene, camera);
 }
@@ -143,7 +158,7 @@ function getWorldCoords(event) {
     var intersects = raycaster.intersectObjects(scene.children);
 
     for (i in intersects) {
-        if (intersects[i].object.geometry.type == 'PlaneGeometry') {
+        if (intersects[i].object.id == 5) {
             return {
                 x: intersects[i].point.x,
                 y: intersects[i].point.y
