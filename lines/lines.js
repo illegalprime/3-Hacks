@@ -13,6 +13,9 @@ function init() {
                                          0.1,
                                          4000);
     camera.position.z = 500;
+    camera.position.y = -150;
+    camera.rotateZ(0.05);
+    camera.rotateX(0.2);
     scene     = new THREE.Scene();
     renderer  = new THREE.WebGLRenderer();
     raycaster = new THREE.Raycaster();
