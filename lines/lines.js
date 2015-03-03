@@ -2,6 +2,7 @@ var camera, scene, renderer, meta;
 var line, points;
 var mouse, raycaster;
 var hover, tag;
+var pointerID;
 
 init();
 animate();
@@ -28,6 +29,17 @@ function init() {
     points = createOutlines();
 
     // Adding Meshes
+    var geometry = new THREE.PlaneGeometry(1020, 1320);
+    var material = new THREE.MeshBasicMaterial({
+        map:  THREE.ImageUtils.loadTexture('assets/LinuxTime_Poster.png'),
+        side: THREE.DoubleSide
+    });
+    tag = new THREE.Mesh(geometry, material);
+    tag.position.z = -0.2;
+    tag.position.x = -193;
+    tag.position.y =  238;
+    scene.add(tag);
+
     var material = new THREE.LineBasicMaterial({
         color: 0xe8bd07,
         linewidth: 500,
@@ -58,7 +70,7 @@ function init() {
         opacity: 0
     });
     tag = new THREE.Mesh(geometry, material);
-    tag.position.z = 1;
+    tag.position.z = -0.1;
     tag.position.x = 300;
     tag.position.y = -10;
     tag.rotation.z = Math.PI / 2;
@@ -71,7 +83,9 @@ function init() {
         transparent: true,
         opacity: 0
     });
+
     var plane = new THREE.Mesh(pGeom, pMatr);
+    pointerID = plane.id;
     scene.add(plane);
 
     window.addEventListener('mousemove', function(event) {
@@ -161,7 +175,7 @@ function getWorldCoords(event) {
     var intersects = raycaster.intersectObjects(scene.children);
 
     for (i in intersects) {
-        if (intersects[i].object.id == 5) {
+        if (intersects[i].object.id == pointerID) {
             return {
                 x: intersects[i].point.x,
                 y: intersects[i].point.y
