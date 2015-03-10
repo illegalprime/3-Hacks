@@ -2,6 +2,7 @@ var camera, scene, renderer, meta;
 var line, points;
 var mouse, raycaster;
 var hover, plane;
+var testMass;
 
 init();
 animate();
@@ -13,9 +14,9 @@ function init() {
                                          0.1,
                                          4000);
     camera.position.z = 500;
-    camera.position.y = -150;
+    camera.position.y = -500;
     camera.rotateZ(0.05);
-    camera.rotateX(0.2);
+    camera.rotateX(0.8);
     scene     = new THREE.Scene();
     renderer  = new THREE.WebGLRenderer();
     raycaster = new THREE.Raycaster();
@@ -40,36 +41,60 @@ function init() {
 
 
 
-    var outline  = new THREE.Shape([
-        new THREE.Vector2(0, 0),
-        new THREE.Vector2(100, 0),
-        new THREE.Vector2(100, 100),
-        new THREE.Vector2(0, 100)
-    ]);
+    // var outline  = new THREE.Shape([
+    //     new THREE.Vector2(0, 0),
+    //     new THREE.Vector2(100, 0),
+    //     new THREE.Vector2(100, 100),
+    //     new THREE.Vector2(0, 100)
+    // ]);
+    var outline = new THREE.Shape(points.gunter.vertices);
     var extrGeom = new THREE.ExtrudeGeometry(outline, {
 
     });
     var extrMatr = new THREE.MeshBasicMaterial({
         map:  THREE.ImageUtils.loadTexture('assets/argonisotope-flat.png')
     });
-    var testMass = new THREE.Mesh(extrGeom, extrMatr);
-    extrGeom.faceUvs = [[]];
+    testMass = new THREE.Mesh(extrGeom, extrMatr);
+    // extrGeom.faceUvs = [[]];
+    // extrGeom.faceUvs[0].push(new THREE.Vector2(0, 1));
     extrGeom.faceVertexUvs = [[]];
-    for (var f = 0; f < extrGeom.faces.length; f++) {
+    extrGeom.faceVertexUvs[0] = [];
+    var arFaces = [
+        new THREE.Vector2(0, 0),
+        new THREE.Vector2(1, 0),
+        new THREE.Vector2(1, 1),
+        new THREE.Vector2(0, 1)
+    ];
+    extrGeom.faceVertexUvs[0][0] = [ arFaces[0], arFaces[1], arFaces[3] ];
+    extrGeom.faceVertexUvs[0][1] = [ arFaces[1], arFaces[2], arFaces[3] ];
 
-        var faceuv = [
-            new THREE.Vector2(0, 0),
-            new THREE.Vector2(1, 0),
-            new THREE.Vector2(1, 1),
-            new THREE.Vector2(0, 1)
-        ];
+    extrGeom.faceVertexUvs[0][2] = [ arFaces[3], arFaces[0], arFaces[1] ];
+    extrGeom.faceVertexUvs[0][3] = [ arFaces[1], arFaces[2], arFaces[3] ];
+    // var vu = [];
+    // for (var i = 0; i < points.gunter.vertices.length; ++i) {
+    //     var x = points.gunter.vertices[i] / width;
+    //     var y = points.gunter.vertices[i] / height;
+    //     vu.push(new THREE.Vector2(x, y));
+    // }
+    // extrGeom.faceVertexUvs[0][0] = vu;
+    // extrGeom.faceVertexUvs[0][1] = vu;
+    // extrGeom.faceVertexUvs[0][2] = vu;
+    // extrGeom.faceVertexUvs[0][3] = vu;
 
-        extrGeom.faceUvs[0].push(new THREE.Vector2(0, 1));
-        extrGeom.faceVertexUvs[0].push(faceuv);
-    }
-    // testMass.position.x = - width  / 2;
-    // testMass.position.y =   height / 2;
-    // testMass.position.z =   -200;
+    // extrGeom.faceVertexUvs[0][4] = [ arFaces[0], arFaces[1], arFaces[3] ];
+    // extrGeom.faceVertexUvs[0][5] = [ arFaces[1], arFaces[2], arFaces[3] ];
+    //
+    // extrGeom.faceVertexUvs[0][6] = [ arFaces[0], arFaces[1], arFaces[3] ];
+    // extrGeom.faceVertexUvs[0][7] = [ arFaces[1], arFaces[2], arFaces[3] ];
+    //
+    // extrGeom.faceVertexUvs[0][8] = [ arFaces[0], arFaces[1], arFaces[3] ];
+    // extrGeom.faceVertexUvs[0][9] = [ arFaces[1], arFaces[2], arFaces[3] ];
+    //
+    // extrGeom.faceVertexUvs[0][10] = [ arFaces[0], arFaces[1], arFaces[3] ];
+    // extrGeom.faceVertexUvs[0][11] = [ arFaces[1], arFaces[2], arFaces[3] ];
+    testMass.position.x = - width  / 2;
+    testMass.position.y =   height / 2;
+    testMass.position.z =   -300;
     scene.add(testMass);
 
 
@@ -92,11 +117,11 @@ function init() {
     plane = new THREE.Mesh(pGeom, pMatr);
     scene.add(plane);
 
-    window.addEventListener('mousemove', function(event) {
-        var coords = getWorldCoords(event);
-        if (coords) hover = true;
-        else        hover = false;
-    }, false);
+    // window.addEventListener('mousemove', function(event) {
+    //     var coords = getWorldCoords(event);
+    //     if (coords) hover = true;
+    //     else        hover = false;
+    // }, false);
 }
 
 function animate() {
@@ -104,10 +129,13 @@ function animate() {
     render();
 }
 
+var i = 0;
 function render() {
     // Setup rendering
     // if (hover) console.log('Hovering!');
     // else       console.log('Not!');
+    i += 0.01;
+    testMass.position.z = 80 * Math.cos(i);
     // Render
     renderer.render(scene, camera);
 }
