@@ -16,9 +16,9 @@ function init() {
                                          0.1,
                                          4000);
     camera.position.z = 1000;
-    // camera.position.y = -500;
-    // camera.rotateZ(0.05);
-    // camera.rotateX(0.2);
+    camera.position.y = -800;
+    camera.rotateZ(0.05);
+    camera.rotateX(0.8);
     scene     = new THREE.Scene();
     renderer  = new THREE.WebGLRenderer();
     raycaster = new THREE.Raycaster();
@@ -26,116 +26,42 @@ function init() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
 
+    // Constants
+    var extrude = 50;
+
     // Get vertext data.
     points = createOutlines();
-    points.gunter.computeBoundingBox();
-    var gunterBB = points.gunter.boundingBox;
+    points.gunter.geometry.computeBoundingBox();
+    var gunterBB = points.gunter.geometry.boundingBox;
     var width    = gunterBB.max.x - gunterBB.min.x;
     var height   = gunterBB.max.y - gunterBB.min.y;
 
-    // var outline = new THREE.Shape(points.gunter.vertices);
-    // var extrGeom = new THREE.ExtrudeGeometry(outline, {
-    //     steps: 1,
-    //     bevelEnabled: false,
-    //     amount: 50,
-    //     material: 0,
-    //     extrudeMaterial: 1,
-    //     UVGenerator: THREE.ExtrudeGeometry.BoundingBoxUVGenerator
-    // });
-    // // var uvs = extrGeom.faceVertexUvs[0];
-    // // for (var i = 0; i < uvs.length; i++) {
-    // //
-    // //     uv = uvs[i];
-    // //
-    // //     for (var j = 0; j < uv.length; j++) {
-    // //         u = uv[j];
-    // //         u.x = (u.x - 0) / 1024;
-    // //         u.y = (u.y - 0) / 1024;
-    // //     }
-    // // }
-    // var extrMatr = new THREE.MeshLambertMaterial({
-    //     map: THREE.ImageUtils.loadTexture('assets/Gunter.png')
-    // });
-    // var extrSide = new THREE.MeshLambertMaterial({
-    //     color: 0xff8800,
-    //     ambient: 0xffffff,
-    // });
-    // testMass = new THREE.Mesh(extrGeom, new THREE.MeshFaceMaterial([extrMatr, extrSide]));
-    //
-    // testMass.position.x = - width  / 2;
-    // testMass.position.y =   height / 2;
-    // scene.add(testMass);
-
-    var outline = new THREE.Shape(points.gunter.vertices);
-    var outlinePoints = outline.extractAllPoints();
-    var triangles = THREE.Shape.Utils.triangulateShape(outlinePoints.shape, outlinePoints.holes);
-
-    for (var i = 0; i < triangles.length; ++i) {
-        for (var j = 0; j < triangles[i].length; ++j) {
-            triangles[i][j] = triangles[i][j] / 1024;
-        }
-    }
-    console.log(triangles);
-
+    // Create Extruded Mesh
+    var outline = new THREE.Shape(points.gunter.geometry.vertices);
     var extrGeom = new THREE.ExtrudeGeometry(outline, {
         material: 0,
-        extrudeMaterial: 1
+        extrudeMaterial: 1,
+        amount: extrude
     });
     var extrMatr = new THREE.MeshBasicMaterial({
-        map:  THREE.ImageUtils.loadTexture('assets/Gunter.png')
+        color: 0x0000ff
     });
-    var extrSide = new THREE.MeshLambertMaterial({
-        color: 0xff8800,
-        ambient: 0xffffff,
+    gunterBlock = new THREE.Mesh(extrGeom, extrMatr);
+    gunterBlock.position.x = - width  / 2;
+    gunterBlock.position.y =   height / 2;
+
+    // Create 'Texture'
+    var coverGeo = new THREE.PlaneGeometry(width, height);
+    console.log(points.gunter.path);
+    var coverMat = new THREE.MeshBasicMaterial({
+        map:  THREE.ImageUtils.loadTexture(points.gunter.path),
+        transparent: true,
+        side: THREE.DoubleSide
     });
-    testMass = new THREE.Mesh(extrGeom, new THREE.MeshFaceMaterial([extrMatr, extrSide]));
-    extrGeom.faceUvs = [[]];
-    // extrGeom.faceUvs[0].push(new THREE.Vector2(0, 1));
-    extrGeom.faceVertexUvs = [[]];
-    extrGeom.faceVertexUvs[0] = [];
-    var x = 0;
-    var y = (1024 - 732) / 1024;
-    var w = 501 / 1024;
-    var h = 732 / 1024;
-    var arFaces = [
-        new THREE.Vector2(x, y),
-        new THREE.Vector2(x + w, y),
-        new THREE.Vector2(x + w, y + h),
-        new THREE.Vector2(x, y + h)
-    ];
-    extrGeom.faceVertexUvs[0][0] = triangles;
-    extrGeom.faceVertexUvs[0][1] = triangles;
+    var cover = new THREE.Mesh(coverGeo, coverMat);
+    cover.position.z = extrude;
 
-    extrGeom.faceVertexUvs[0][2] = triangles;
-    extrGeom.faceVertexUvs[0][3] = triangles;
-    // var vu = [];
-    // for (var i = 0; i < points.gunter.vertices.length; ++i) {
-    //     var x = points.gunter.vertices[i] / width;
-    //     var y = points.gunter.vertices[i] / height;
-    //     vu.push(new THREE.Vector2(x, y));
-    // }
-    // extrGeom.faceVertexUvs[0][0] = vu;
-    // extrGeom.faceVertexUvs[0][1] = vu;
-    // extrGeom.faceVertexUvs[0][2] = vu;
-    // extrGeom.faceVertexUvs[0][3] = vu;
-
-    // extrGeom.faceVertexUvs[0][4] = [ arFaces[0], arFaces[1], arFaces[3] ];
-    // extrGeom.faceVertexUvs[0][5] = [ arFaces[1], arFaces[2], arFaces[3] ];
-    //
-    // extrGeom.faceVertexUvs[0][6] = [ arFaces[0], arFaces[1], arFaces[3] ];
-    // extrGeom.faceVertexUvs[0][7] = [ arFaces[1], arFaces[2], arFaces[3] ];
-    //
-    // extrGeom.faceVertexUvs[0][8] = [ arFaces[0], arFaces[1], arFaces[3] ];
-    // extrGeom.faceVertexUvs[0][9] = [ arFaces[1], arFaces[2], arFaces[3] ];
-    //
-    // extrGeom.faceVertexUvs[0][10] = [ arFaces[0], arFaces[1], arFaces[3] ];
-    // extrGeom.faceVertexUvs[0][11] = [ arFaces[1], arFaces[2], arFaces[3] ];
-    testMass.position.x = - width  / 2;
-    testMass.position.y =   height / 2;
-    testMass.position.z =   -300;
-    scene.add(testMass);
-
-
+    // Create Pointing Plane
     var pGeom = new THREE.PlaneGeometry(10000, 10000);
     var pMatr = new THREE.MeshBasicMaterial({
         color: 0xffff00,
@@ -143,9 +69,16 @@ function init() {
         transparent: true,
         opacity: 0
     });
-
     plane = new THREE.Mesh(pGeom, pMatr);
-    scene.add(plane);
+
+    // Group together
+    group = new THREE.Object3D();
+    group.add(gunterBlock);
+    group.add(cover);
+    group.add(plane);
+    scene.add(group);
+
+    testMass = group;
 
     window.addEventListener('mousemove', function(event) {
         var scale = 150;
@@ -191,18 +124,21 @@ function createOutlines(scale) {
 
         var imageDefinition = function(x, y) {
             var alpha = pixels[(y * canvas.width + x) * 4 + 3];
-            return alpha > 50;
+            return alpha > 1;
         }
         var points = contour(imageDefinition);
         var geometry = new THREE.Geometry();
 
         for (var j = 0; j < points.length; ++j) {
             geometry.vertices.push(new THREE.Vector3(
-                ( points[j][0] - magic ) *  scale,
-                ( points[j][1] - magic ) * -scale, 0
+                points[j][0] - magic,
+               -points[j][1] - magic, 0
             ));
         }
-        vertices[imgs[i].id] = geometry;
+        vertices[imgs[i].id] = {
+            geometry: geometry,
+            path:     imgs[i].src
+        }
     }
     return vertices;
 }
@@ -229,14 +165,4 @@ function getWorldCoords(event) {
             }
         }
     }
-}
-
-function getGunter() {
-    var canvas = document.createElement('canvas');
-    canvas.width = canvas.height = 1024;
-    var ctx = canvas.getContext('2d');
-    ctx.drawImage(document.getElementById('gunter'), 0, 0);
-    var texture = new THREE.Texture(canvas);
-    texture.needsUpdate = true;
-    return texture;
 }
