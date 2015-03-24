@@ -2,8 +2,7 @@ var camera, scene, renderer;
 var points;
 var mouse, raycaster;
 var plane;
-
-var testMass;
+var group;
 var floating;
 
 init();
@@ -24,6 +23,7 @@ function init() {
     raycaster = new THREE.Raycaster();
     mouse     = new THREE.Vector3();
     renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(0xff0000);
     document.body.appendChild(renderer.domElement);
 
     // Constants
@@ -39,18 +39,18 @@ function init() {
     // Create Extruded Mesh
     var outline = new THREE.Shape(points.gunter.geometry.vertices);
     var extrGeom = new THREE.ExtrudeGeometry(outline, {
-        material: 0,
-        extrudeMaterial: 1,
-        amount: extrude
+        bevelEnabled: false
     });
     var extrMatr = new THREE.MeshBasicMaterial({
-        color: 0x0000ff
+        color: 0x636668
     });
     gunterBlock = new THREE.Mesh(extrGeom, extrMatr);
     gunterBlock.position.x = - width  / 2;
     gunterBlock.position.y =   height / 2;
+    gunterBlock.position.z = -101;
+    gunterBlock.name = "3D shape for gunter";
+    // scene.add(gunterBlock);
 
-    // Create 'Texture'
     var coverGeo = new THREE.PlaneGeometry(width, height);
     console.log(points.gunter.path);
     var coverMat = new THREE.MeshBasicMaterial({
@@ -59,36 +59,42 @@ function init() {
         side: THREE.DoubleSide
     });
     var cover = new THREE.Mesh(coverGeo, coverMat);
-    cover.position.z = extrude;
+    cover.name = "Texture to sit on top of 3D shape";
+
+    // Group together
+    group = new THREE.Group();
+    group.add(gunterBlock);
+    group.add(cover);
+    scene.add(group);
 
     // Create Pointing Plane
     var pGeom = new THREE.PlaneGeometry(10000, 10000);
     var pMatr = new THREE.MeshBasicMaterial({
-        color: 0xffff00,
-        side: THREE.DoubleSide,
         transparent: true,
         opacity: 0
     });
     plane = new THREE.Mesh(pGeom, pMatr);
-
-    // Group together
-    group = new THREE.Object3D();
-    group.add(gunterBlock);
-    group.add(cover);
-    group.add(plane);
-    scene.add(group);
-
-    testMass = group;
+    plane.name = "Plane to use to be able to calculate pointing";
+    scene.add(plane);
 
     window.addEventListener('mousemove', function(event) {
-        var scale = 150;
+        var scale = 250;
         var flatten = 0.001;
         var coords = getWorldCoords(event);
-        var distance = Math.sqrt(Math.pow(coords.x - testMass.position.x - width  / 2, 2)
-                               + Math.pow(coords.y - testMass.position.y + height / 2, 2));
+        if (!coords) return;
+        var distance = Math.sqrt(Math.pow(coords.x - gunterBlock.position.x - width  / 2, 2)
+                               + Math.pow(coords.y - gunterBlock.position.y + height / 2, 2));
         var gaussDis = Math.pow(Math.E, -Math.PI * Math.pow(distance * flatten, 2));
         floating = scale * gaussDis;
     }, false);
+
+    window.addEventListener('resize', function() {
+        var WIDTH  = window.innerWidth;
+        var HEIGHT = window.innerHeight;
+        renderer.setSize(WIDTH, HEIGHT);
+        camera.aspect = WIDTH / HEIGHT;
+        camera.updateProjectionMatrix();
+    });
 }
 
 function animate() {
@@ -96,11 +102,11 @@ function animate() {
     render();
 }
 
-var i = 0;
+var t = 0;
 function render() {
     // Setup rendering
-    i += 0.02;
-    testMass.position.z = 12 * Math.cos(i) + floating;
+    t += 0.02;
+    group.position.z = 34 * Math.cos(t) + floating;
     // Render
     renderer.render(scene, camera);
 }
@@ -155,7 +161,7 @@ function getWorldCoords(event) {
     raycaster.set(camera.position, mouse);
     raycaster.ray.direction.unproject(camera).sub( camera.position ).normalize();
 
-    var intersects = raycaster.intersectObjects(scene.children);
+    var intersects = raycaster.intersectObjects(scene.children, true);
 
     for (var i = 0; i < intersects.length; ++i) {
         if (intersects[i].object.id == plane.id) {
